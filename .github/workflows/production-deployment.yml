@@ -33,9 +33,13 @@ jobs:
       - name: Stage - test production
         run: |
           # We allow the container to boot properly before continuing
-          sleep 10 
+          echo "Waiting 10s"
+          sleep 10
+          echo "Waited 10s"
           
+          # -v for logs
+          # connect-timeout: stop if there's still no connection after 15 seconds
           # --fail returns 'true/exit code 0' if response is in the 200-299 statuscode range, 
           #  'false/exit code 22' if it's between 400-599
           # 'exit 1' forces the GH runner to abort this step if curl returns 400-599
-          curl --fail http://${{ secrets.PROD_HOST }} || exit 1
+          curl -v --connect-timeout 15 --fail http://${{ secrets.PROD_HOST }} || exit 1
