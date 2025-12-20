@@ -25,8 +25,7 @@ jobs:
         run: npm install
 
       - name: Build Docker image
-        working-directory: calculator-app
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest ./calculator-app
 
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
