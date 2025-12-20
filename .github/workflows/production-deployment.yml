@@ -1,0 +1,38 @@
+name: Production Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stage - pull production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
+
+      - name: Stage - start production
+        uses: appleboy/ssh-action@v1.0.3
+        with: 
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            docker stop calculator-prod || true
+            docker rm calculator-prod || true
+            docker run -d --name calculator-prod -p 80:3000 ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
+
+      - name: Stage - test production
+        run: |
+          # We allow the container to boot properly before continuing
+          sleep 10 
+          
+          # --fail returns 'true/exit code 0' if response is in the 200-299 statuscode range, 
+          #  'false/exit code 22' if it's between 400-599
+          # 'exit 1' forces the GH runner to abort this step if curl returns 400-599
+          curl --fail http://${{ secrets.PROD_HOST }} || exit 1
