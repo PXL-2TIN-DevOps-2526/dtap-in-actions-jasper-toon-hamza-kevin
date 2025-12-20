@@ -29,12 +29,10 @@ jobs:
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest .
 
       - name: Login to DockerHub
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Push Docker image
-        run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
+        run:  docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
 
       - name: Deploy to test server
         uses: appleboy/ssh-action@v1.0.3
@@ -42,7 +40,6 @@ jobs:
           host: ${{ secrets.TEST_HOST }}
           username: ${{ secrets.TEST_USER }}
           key: ${{ secrets.TEST_SSH_KEY }}
-          script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
+          script: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
             docker rm -f calculator-test || true
             docker run -d --name calculator-test -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
