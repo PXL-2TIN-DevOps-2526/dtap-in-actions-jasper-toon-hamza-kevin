@@ -26,8 +26,7 @@ jobs:
 
       - name: Build Docker image
         working-directory: calculator-app
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest .
 
       - name: Login to DockerHub
         run: |
