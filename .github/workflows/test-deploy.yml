@@ -1,42 +1,46 @@
----
 name: Test Deployment
+
 on:
-  workflow_dispatch: null
+  workflow_dispatch:
   push:
     branches:
       - main
       - test-workflow
+
 jobs:
   test-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: '18'
+
       - name: Install dependencies
         working-directory: calculator-app
         run: npm install
+
       - name: Build Docker image
-        run: docker buildx build --load -t ${{ secrets.DOCKERHUB_USERNAME
-          }}/calculator-app:latest ./calculator-app
+        run: docker buildx build --load -t ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest ./calculator-app
+
+
       - name: Login to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{
-          secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
+
       - name: Deploy to test server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.TEST_HOST }}
           username: ${{ secrets.TEST_USER }}
           key: ${{ secrets.TEST_SSH_KEY }}
-          script: >
+          script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
-
             docker rm -f calculator-test || true
-
             docker run -d --name calculator-test -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app:latest
-
