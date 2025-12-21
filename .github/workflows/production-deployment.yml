@@ -1,13 +1,21 @@
 name: Production Deployment
 
+# if the testworkflow is finished, the productionworkflow is triggered via types: completed on main
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - prod-deploy
+  workflow_run:
+    workflows: ["Test Deployment"]
+    types:
+      - completed
+    branches: 
+      - main
 
 jobs:
   deploy-production:
+
+  # ONLY push a working/approved build to production, check via if
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
     runs-on: ubuntu-latest
     steps:
       - name: Stage - pull production
